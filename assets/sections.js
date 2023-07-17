@@ -913,6 +913,13 @@ window.productPage = {
       },
     });
 
+    const recipientFormEl = document.querySelector('[data-recipient-form]');
+
+    if (recipientFormEl) {
+      const sectionEl = recipientFormEl.closest('.product_section');
+      this.recipientForm = new RecipientForm(sectionEl);
+    }
+
     // Complementary products
     const complementaryProductsEl = document.querySelector('[data-complementary-products]');
 
@@ -2638,8 +2645,11 @@ class Meganav {
 
     const a = target.querySelector('a');
 
+    // If there's a `href="#"`, `a.href` will return the resolved URL, which includes the page URL
+    // and the `#` fragment, so we'll use `getAttribute()` here.
+    // This is used for handling the click events on the mobile menu accordions.
     if (a) {
-      return a.href;
+      return a.getAttribute('href');
     }
 
     return '';

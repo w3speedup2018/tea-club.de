@@ -3,7 +3,7 @@
     "name": "theme_info",
     "theme_name": "Turbo",
     "theme_author": "Out of the Sandbox",
-    "theme_version": "9.0.0",
+    "theme_version": "9.1.0",
     "theme_documentation_url": "https:\/\/help.outofthesandbox.com\/",
     "theme_support_url": "https:\/\/help.outofthesandbox.com\/hc\/en-us\/requests\/new"
   },
@@ -1578,6 +1578,7 @@
         "type": "checkbox",
         "id": "newsletter_popup_close",
         "label": "Show close icon",
+        "info": "Desktop only",
         "default": true
       },
       {

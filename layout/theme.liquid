@@ -17,11 +17,25 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="{{ settings.shop_bg_color }}">
     {% if current_tags %}{% assign meta_tags = current_tags | join: ', ' %}{% endif %}
+    {% capture meta_title %}
     <title>
-      {% if template contains "index" %}{{ page_title }}{% else %}{{ page_title }}{% if current_tags %} {{ 'general.meta.tagged_html' | t: tags: meta_tags }}{% endif %}{% if current_page != 1 %} {{ 'general.meta.page' | t: page_number: current_page }}{% endif %}{% unless page_title contains shop.name %} - {{ shop.name }}{% endunless %}{% endif %}
+      {% if canonical_url contains '/apps/sendungsverfolgung' %} Verfolgen Sie Ihre Teebestellungen ganz einfach. | {% endif %}{% if template contains "index" %}{{ page_title }}{% else %}{{ page_title }}{% if current_tags %} {{ 'general.meta.tagged_html' | t: tags: meta_tags }}{% endif %}{% if current_page != 1 %} {{ 'general.meta.page' | t: page_number: current_page }}{% endif %}{% unless page_title contains shop.name %} - {{ shop.name }}{% endunless %}{% endif %}
     </title>
+    {% endcapture %}
+    {% if canonical_url contains '/blogs/tee-blog/tagged/' %}
+        {{ meta_title | replace: ' Teetrends und Teegenuss Getaggt' , '' }}
+    {% else %}
+        {{ meta_title }}
+    {% endif %}
     {% if page_description %}
-      <meta name="description" content="{% if template contains 'search' %} {{ page_title }} - {{ shop.name }} {% else %}{{ page_description | escape }}{% if current_tags %} {{ 'general.meta.tagged_html' | t: tags: meta_tags | escape }}.{% endif %}{% if current_page != 1 %} {{ 'general.meta.page' | t: page_number: current_page }}.{% endif %}{% endif %}"/>
+        <meta name="description" content="{% if template contains 'search' %} {{ page_title }} - {{ shop.name }} {% else %}{{ page_description | escape }}{% if current_tags %} {{ 'general.meta.tagged_html' | t: tags: meta_tags | escape }}.{% endif %}{% if current_page != 1 %} {{ 'general.meta.page' | t: page_number: current_page }}.{% endif %}{% endif %}"/>
+    {% else %}
+        {% if canonical_url contains '/collections/all' %}
+              <meta name="description" content="Entdecken Sie eine faszinierende Sammlung erlesener Tees im TeaClub. Gönnen Sie sich unsere kuratierte Auswahl und steigern Sie Ihr Teeerlebnis."/>
+        {% endif %}    
+        {% if canonical_url contains '/apps/sendungsverfolgung' %}
+              <meta name="description" content="Verfolgen Sie Ihre Teebestellungen ganz einfach. Bleiben Sie über den Lieferstatus Ihrer Lieblingsmischungen auf dem Laufenden. Treten Sie dem TeaClub bei und erleben Sie Teegenuss"/>
+        {% endif %}    
     {% endif %}
     <!-- Preconnect Domains -->
     <link rel="preconnect" href="https://fonts.shopifycdn.com" />
@@ -44,19 +58,16 @@
     <link rel="preload" href="{{ 'utilities.js' | asset_url }}" as="script">
     <link rel="preload" href="{{ 'app.js' | asset_url }}" as="script">
     <!-- Stylesheet for Fancybox library -->{% endcomment %}
-    {% render 'font-css' %}
-        {% if template contains 'index' %}
-            {% render 'homepage-critical-css' %}
-        {% elsif template contains 'collection' %}
-            {% render 'collection-critical-css' %}
-        {% elsif template contains 'product' %}
-            {% render 'product-critical-css' %}
-        {% else %}
-            {% render 'styles-css' %}
-            {% render 'styles-css-2' %}
-        {% endif %}      
-        <link rel="stylesheet" href="{{ 'fancybox.css' | asset_url }}">
+    {% render 'font-css' %}    
+    {% if template contains "page" %}
+    	<link rel="stylesheet" href="{{ 'fancybox.css' | asset_url }}">
         <link rel="stylesheet" href="{{ 'styles.css' | asset_url }}">
+    {% else %}
+        {% render 'all-css' %}     
+        {% render 'all-css2' %} 
+    	<link rel="stylesheet" data-href="{{ 'fancybox.css' | asset_url }}">
+        <link rel="stylesheet" data-href="{{ 'styles.css' | asset_url }}">
+    {% endif %}
     <script>
       window.lazySizesConfig = window.lazySizesConfig || {};
       lazySizesConfig.expand = 300;
@@ -95,7 +106,7 @@
     {% comment %}Inject theme-object begin{% endcomment %}
     <script>
       window.PXUTheme = window.PXUTheme || {};
-      window.PXUTheme.version = '9.0.0';
+      window.PXUTheme.version = '9.1.0';
       window.PXUTheme.name = 'Turbo';
     </script>
     {% comment %}Inject theme-object end{% endcomment %}
@@ -123,12 +134,21 @@
     <script>
       {% render 'js-variables' %}
     </script>
-    <script type="lazyload2" data-src="{{ 'vendors.js' | asset_url }}"></script>
-    <script type="lazyload2" data-src="{{ 'sections.js' | asset_url }}"></script>
-    <script type="lazyload2" data-src="{{ 'utilities.js' | asset_url }}"></script>
-    <script type="lazyload2" data-src="{{ 'app.js' | asset_url }}"></script>
+  
+   {% if template contains "product" %}
+        <script type="lazyload2" data-src="{{ 'vendors.js' | asset_url }}"></script>
+        <script type="lazyload2" data-src="{{ 'sections.js' | asset_url }}"></script>
+        <script type="lazyload2" data-src="{{ 'utilities.js' | asset_url }}"></script>
+        <script type="lazyload2" data-src="{{ 'app.js' | asset_url }}"></script>
+    {% else %}
+        <script src="{{ 'vendors.js' | asset_url }}" defer></script>
+        <script src="{{ 'sections.js' | asset_url }}" defer></script>
+        <script src="{{ 'utilities.js' | asset_url }}" defer></script>
+        <script src="{{ 'app.js' | asset_url }}" defer></script>
+    {% endif %}
+  
     <!-- Begin eTrusted bootstrap tag -->
-      <script src="https://integrations.etrusted.com/applications/widget.js/v2" async defer></script>
+      <script type="lazyload2" data-src="https://integrations.etrusted.com/applications/widget.js/v2"></script>
    <!-- End eTrusted bootstrap tag --> 
     {% if settings.disqus_enabled %}
       {% if template contains "blog" or template contains "article" or template contains "index" %}
@@ -165,13 +185,13 @@
     <script>
       {{ settings.custom_scripts }}
     </script>
-        {%- if request.design_mode or template contains 'cart' or template contains 'checkout' -%}
-            {{ content_for_header }}
-        {%- else -%}
-            {% capture content_for_header2 %}{{ content_for_header }}{% endcapture %}
-            {{ content_for_header2 | replace: ' defer="defer" ', ' type="lazyload2" ' | replace: " src=", " data-src=" | replace: "window.addEventListener('load', asyncLoad, false);", "window.addEventListener('wnw_load', asyncLoad, false);" | replace: "DOMContentLoaded", "DOMContentLoaded2" }}
-            <script>var trekkie=[];trekkie.integrations=!0;</script>
-        {%- endif -%}
+            {%- if request.design_mode or template contains 'cart' or template contains 'checkout' -%}
+              {{ content_for_header }}
+            {%- else -%}
+              {% capture content_for_header2 %}{{ content_for_header }}{% endcapture %}
+              {{ content_for_header2 | replace: ' defer="defer" ', ' type="lazyload2" ' | replace: " src=", " data-src=" | replace: "window.addEventListener('load', asyncLoad, false);", "window.addEventListener('wnw_load', asyncLoad, false);" | replace: "DOMContentLoaded", "DOMContentLoaded2" | replace: "addEventListener('load', prefetchAssets);", "addEventListener('wnw_load', prefetchAssets);" }}
+              <script>var trekkie=[];trekkie.integrations=!0;window.BOOMR={},window.BOOMR.version=true;</script>
+            {%- endif -%}
     {% render 'social-meta-info' %}
     {% if collection.previous_product %}<link rel="prev" href="{{ collection.previous_product }}">{% endif %}
     {% if collection.next_product %}<link rel="next" href="{{ collection.next_product }}">{% endif %}
@@ -255,13 +275,15 @@
         <style class="critical3">.promo-banner{transition:linear;height:auto;min-height:30px;line-height:1.1;display:flex;align-items:center}#header .top-bar{min-height:40px}</style>
         <style class="cls_css">@media only screen and (max-width:798px){body:not(.mobile_nav-fixed--true.promo-banner--show) .section-wrapper{display:block;margin-top:70px}.content-wrapper .sidebar.toggle-all--false .sidebar-block.sidebar-block--first .toggle_list{display:none}}</style>
         {% include 'analyzify-gtm-body' %}
-    <script type="text/javascript">
+    <script type="lazyload2">
     (function(c,l,a,r,i,t,y){
         c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
         t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
         y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
     })(window, document, "clarity", "script", "ht3ywrsi94");
     </script>
+  {% render 'app-block' %}
+  {% render "custom-css" %}
   </head>
   {% if template contains "index" %}
     {% assign feature_image = true %}
@@ -343,6 +365,9 @@
       %}
     </div>
     <div class="section-wrapper">
+      {% if canonical_url contains '/apps/sendungsverfolgung' %}
+              <h1 style="display:none!important">sendungsverfolgung</h1>
+      {% endif %}
       {{ content_for_layout }}
     </div>
     <div class="site-overlay" data-site-overlay></div>

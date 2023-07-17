@@ -1120,33 +1120,43 @@ window.utils = {
     });
 
     $(container).find(tab + '.active').next().slideToggle();
-    $('body').on('click', specificTab, function(e){
+    $(specificTab).on('click', function(e) {
       e.preventDefault();
       $(this).toggleClass('active');
       $(this).next().slideToggle();
     });
   },
-  mobileAccordion: function(container, tab, content){
+  mobileAccordion: function(container, tab) {
     $container = $(container);
-    $tab = $(container).find(tab);
-    $content = $(container).find(content);
+
+    $tab = $(container).find(tab)
+      .filter((_, el) => {
+        const href = el.getAttribute('href');
+        // `href === null` check is for disclosure links such as language/currency selectors.
+        // Checking `href === '#'` won't work if there's a locale code (eg. `/fr#`).
+        return !href || href === '/' || href.includes('#');
+      });
 
     $(tab + '.active').next().slideToggle();
 
-    $('body').on('click', tab, function(e){
+    $tab.on('click', function(e) {
       e.preventDefault();
       $(this).toggleClass('active');
       $(this).next().slideToggle();
     });
   },
-  mobileParentActiveAccordion: function(container, tab, content){
+  mobileParentActiveAccordion: function(container, tab) {
     $container = $(container);
-    $tab = $(container).find(tab);
-    $content = $(container).find(content);
+
+    $tab = $(container).find(tab)
+      .filter((_, el) => {
+        const href = el.parentNode.getAttribute('href');
+        return href !== '' && href !== '/' && !href.includes('#');
+      });
 
     $(tab + '.active').parent().next().slideToggle();
 
-    $('body').on('click', tab, function(e){
+    $tab.on('click', function(e) {
       e.preventDefault();
       $(this).toggleClass('active');
       $(this).parent().next().slideToggle();
@@ -1660,3 +1670,22 @@ window.videoFeature = {
     }
   }
 }
+
+window.addEventListener('load', () => {
+    // eslint-disable-next-line max-len
+    if (window.Shopify && window.Shopify.theme && window.PXUTheme && navigator && navigator.sendBeacon && window.Shopify.designMode) {
+      if (sessionStorage.getItem('oots_beacon')) return;
+
+      navigator.sendBeacon('https://app.outofthesandbox.com/beacon', new URLSearchParams({
+        shop_domain: window.Shopify.shop,
+        shop_id: window.Store.id,
+        theme_name: window.PXUTheme.name,
+        theme_version: window.PXUTheme.version,
+        theme_store_id: window.Shopify.theme.theme_store_id,
+        theme_id: window.Shopify.theme.id,
+        theme_role: window.Shopify.theme.role,
+      }));
+
+      sessionStorage.setItem('oots_beacon', '');
+    }
+  });

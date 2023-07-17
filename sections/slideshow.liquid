@@ -58,6 +58,7 @@
           data-slideshow-speed="{{ section.settings.slideshow_speed }}"
           data-slideshow-text-animation="{{ section.settings.slideshow_text_animation }}"
           data-adaptive-height="{{ section.settings.activate_adaptiveHeight }}"
+          role="tablist"
         >
           {% for block in section.blocks %}
             <div
@@ -67,7 +68,7 @@
                 caption-background-{{ block.settings.caption_content_background }}
                 caption--below-{{ section.settings.mobile_text_below_image }}
               "
-              {{ block.shopify_attributes }}
+               role="tab" {{ block.shopify_attributes }}
               data-block-id="{{ block.id }}"
             >
               {% if block.settings.mobile_image %}

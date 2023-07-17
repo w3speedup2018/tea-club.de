@@ -1,7 +1,7 @@
 {% if context == 'top_bar_menu' %}
   {% for link in linklists[menu].links %}
     <li>
-      {% if link.url == 'http://' or link.url == '' or link.url == '/' or link.url == 'https://' or link.url == '#' %}
+      {% if link.url == '' or link.url == '/' or link.url == '#' %}
         <a data-no-instant href="{{ link.url }}" class="parent-link--false">
           {{ link.title }}
         </a>
@@ -23,7 +23,7 @@
   {% for link in linklists[menu].links %}
     {% if linklists[link.handle] == empty %}
       <li data-mobile-dropdown-rel="{{ link.handle }}" data-meganav-mobile-target="{{ link.title | handle }}">
-        {% if link.url == 'http://' or link.url == '' or link.url == '/' or link.url == 'https://' or link.url == '#' %}
+        {% if link.url == '' or link.url == '/' or link.url == '#' %}
           <a data-nav-title data-no-instant href="{{ link.url }}" class="parent-link--false">
             {{ link.title }}
           </a>
@@ -35,7 +35,7 @@
       </li>
     {% else %}
       <li data-mobile-dropdown-rel="{{ link.handle }}" class="sublink" data-meganav-mobile-target="{{ link.title | handle }}">
-        {% if link.url == 'http://' or link.url == '' or link.url == '/' or link.url == 'https://' or link.url == '#' %}
+        {% if link.url == '' or link.url == '/' or link.url == '#' %}
           <a data-no-instant href="{{ link.url }}" class="parent-link--false">
             <div class="mobile-menu-item-title" data-nav-title>{{ link.title }}</div>
             <span class="right icon-down-arrow"></span>
@@ -51,8 +51,8 @@
             {% if linklists[link.handle] == empty %}
               <li><a href="{{ link.url }}">{{ link.title }}</a></li>
             {% else %}
-              <li class="sublink test">
-                {% if link.url == 'http://' or link.url == '' or link.url == '/' or link.url == 'https://' or link.url == '#' %}
+              <li class="sublink">
+                {% if link.url == '' or link.url == '/' or link.url == '#' %}
                   <a data-no-instant href="{{ link.url }}" class="parent-link--false">
                     {{ link.title }} <span class="right icon-down-arrow"></span>
                   </a>

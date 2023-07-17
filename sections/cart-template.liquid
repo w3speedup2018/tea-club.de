@@ -73,7 +73,7 @@
       </div>
       <br />
 
-      <form action="{{ routes.cart_url }}" method="post" class="cb-upsell-prevent" id="cart_form" data-cart-form="cart-template" data-total-discount="{{ cart.total_discount }}">
+      <form action="{{ routes.cart_url }}" method="post" id="cart_form" data-cart-form="cart-template" data-total-discount="{{ cart.total_discount }}">
         <div class="cart__wrapper is-flex is-flex-wrap">
           <div class="two-thirds columns medium-down--one-whole">
             {%- assign total_saving = 0 -%}
@@ -104,37 +104,56 @@
                     </a>
                   </h3>
 
-                  {% unless item.product.has_only_default_variant or item.variant.title contains "Title" %}
-                    <p class="meta">
-                      {% for option in item.product.options %}
-                        <span class="label">{{ option }}:</span> <span>{{ item.variant.options[forloop.index0] }}</span><br />
-                      {% endfor %}
-                    </p>
-                  {% endunless %}
+                  {%- if item.product.has_only_default_variant == false
+                    or item.properties.size != 0
+                    or item.selling_plan_allocation != null
+                  -%}
+                    <ul class="cart__product-options">
+                      {%- if item.product.has_only_default_variant == false -%}
+                        {%- for option in item.options_with_values -%}
+                          <li class="cart__product-option">
+                            <span class="cart__product-option-name">
+                              {{- option.name -}}:
+                            </span>
+                            <span class="cart__product-option-value">
+                              {{- option.value -}}
+                            </span>
+                          </li>
+                        {%- endfor -%}
+                      {%- endif -%}
 
-                  {% if item.selling_plan_allocation.selling_plan %}
-                    <p class="meta">{{ item.selling_plan_allocation.selling_plan.name }}</p>
-                  {% endif %}
+                      {%- for property in item.properties -%}
+                        {%- assign property_first_char = property.first | slice: 0 -%}
+                        {%- if property.last != blank and property_first_char != '_' -%}
+                          <li class="cart__product-option">
+                            <span class="cart__product-option-name">
+                              {{- property.first -}}:
+                            </span>
 
-                  {% if item.properties %}
-                    <p>
-                      {% for p in item.properties %}
-                        {% if p.first.first == "_" %}{% continue %}{% endif %}
-                        {% unless p.last == blank %}
-                          {% if p.last contains '/uploads/' %}
-                            <div>
-                              {{ p.first }}: <a class="lightbox" href="{{ p.last }}">{{ 'cart.general.uploaded_file' | t }}</a>
-                            </div>
-                          {% else %}
+                            <span class="cart__product-option-value">
+                              {%- if property.last contains '/uploads/' -%}
+                                <a
+                                  class="lightbox"
+                                  href="{{ property.last }}"
+                                  target="_blank"
+                                >
+                                  {{- 'cart.general.uploaded_file' | t -}}
+                                </a>
+                              {%- else -%}
+                                {{- property.last -}}
+                              {%- endif -%}
+                            </span>
+                          </li>
+                        {%- endif -%}
+                      {%- endfor -%}
 
-                          <div>
-                            {{ p.first }}: {{ p.last }}
-                          </div>
-                        {% endif %}
-                      {% endunless %}
-                    {% endfor %}
-                  </p>
-                {% endif %}
+                      {%- if item.selling_plan_allocation.selling_plan -%}
+                        <li class="cart__product-option">
+                          {{- item.selling_plan_allocation.selling_plan.name -}}
+                        </li>
+                      {%- endif -%}
+                    </ul>
+                  {%- endif -%}
 
                 <p class="modal_price">
                   {% if item.price > 0 %}
@@ -280,19 +299,19 @@
             {% endif %}
 
             {% unless shop.enabled_currencies.size > 1 %}
-            {% comment %}  
-            <p>
+              {% comment %}
+              <p>
                 <small>{{ 'cart.general.orders_processed_in_currency_html' | t: currency: shop.currency }}</small>
-            </p>
-            {% endcomment %}
+              </p>
+              {% endcomment %}
             {% endunless %}
 
             {% if section.settings.display_special_instructions %}
-              <label for="note">{{ 'cart.general.note' | t: shop_name: shop.name }}</label>
+              <label for="note">{{ 'cart.general.note' | t: shop_name: shop.name }}:</label>
               <textarea id="note" name="note" rows="2">{{ cart.note }}</textarea>
             {% endif %}
 
-           {% if settings.display_widerruf_checkbox %}
+          {% if settings.display_widerruf_checkbox %}
              <div>
                <input type="checkbox" class="widerruf_agree" id="cart_agree" required/>
                 <label class="widerruf_label" style="padding-left:5px;display:inline; float:none" for="cart_agree">  
@@ -301,15 +320,17 @@
                </label>                
             </div> 
             {% endif %}
-            
-
+  
             {% if settings.display_tos_checkbox %}
               <p>
                 <input type="checkbox" class="tos_agree" id="cart_agree" required />
 
                 <label class="tos_label" for="cart_agree">
-                  {% comment %}{{ 'cart.general.agree_to_terms_html' | t }}{% endcomment %}
-                  <label style="padding-left:5px;display:inline; float:none" for="agb">
+                {% comment %}  
+                {{ 'cart.general.agree_to_terms_html' | t }}
+                {% endcomment %}
+                
+                <label style="padding-left:5px;display:inline; float:none" for="agb">
                   Ich akzeptiere die <a target="_blank" href="/policies/terms-of-service">Allgemeinen Geschäfts- und Lieferbedingungen</a>.
                 </label>
                 </label>
@@ -325,35 +346,32 @@
             {% endif %}
 
             <p class="tos_warning checkout_button">
-              <button type="submit" class="global-button cb-upsell-prevent global-button--primary add_to_cart" id="checkout" name="checkout" data-cart-checkout-button>{% if settings.show_lock_icon %}<span class="icon-lock"></span>{% endif %}{{ 'cart.general.checkout' | t }}</button>
+              <button type="submit" class="global-button global-button--primary add_to_cart" id="checkout" name="checkout" data-cart-checkout-button>{% if settings.show_lock_icon %}<span class="icon-lock"></span>{% endif %}{{ 'cart.general.checkout' | t }}</button>
             </p>
-
-			{% comment %}
+            {% comment %}
             {% if content_for_additional_checkout_buttons %}
               <div class="additional-checkout-buttons additional-checkout-buttons--vertical">
                 {{ content_for_additional_checkout_buttons }}
               </div>
             {% endif %}
-			{% endcomment %}
+            {% endcomment %}
 
             {% if cart.item_count > 0 %}
               <a class="continue-shopping" href="{{ continue_url }}">
                 {{ 'cart.general.continue_shopping' | t }}
               </a>
             {% endif %}
+            </div>                  
           </div>
         </div>
       </div>
     </form>
   {% endif %}
-  
-     	 <div>
-            <h4>🔐 Sicher bezahlen mit </h4>
+              <h4>🔐 Sicher bezahlen mit </h4>
             {% for type in shop.enabled_payment_types %}
                 {{ type | payment_type_svg_tag: class:'payment-icon' }}
             {% endfor %}
-          </div>
-  
+            <br/><br/>
   </div>
 </section>
 

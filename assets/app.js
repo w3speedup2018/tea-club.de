@@ -319,8 +319,8 @@ $(() => {
   window.utils.createAccordion('.footer_menu', 'h6', 'ul');
   window.utils.createAccordion('.footer_content', 'h6', 'div.toggle_content');
   window.utils.createAccordion('.product_section .accordion-tabs', '.tabs li > a', '.tabs-content li');
-  window.utils.mobileParentActiveAccordion('#mobile_menu', 'li.sublink > a.parent-link--true span', 'li.sublink ul');
-  window.utils.mobileAccordion('#mobile_menu', 'li.sublink > a.parent-link--false', 'li.sublink ul');
+  window.utils.mobileParentActiveAccordion('#mobile_menu', 'li.sublink > a.parent-link--true span');
+  window.utils.mobileAccordion('#mobile_menu', 'li.sublink > a');
 
   window.utils.initializeTabs();
   window.accordion.init();
@@ -576,11 +576,13 @@ $(() => {
         }
 
         if (item.properties) {
+          cartItemsHTML += '<div class="mini-cart__item-properties">';
           $.each(item.properties, (title, value) => {
-            if (value) {
-              cartItemsHTML += `<div class="line-item">${title}: ${value} </div>`;
+            if (value && value !== 'on') {
+              cartItemsHTML += `<div class="mini-cart__item-property">${title}: ${value}</div>`;
             }
           });
+          cartItemsHTML += '</div>';
         }
 
         cartItemsHTML += '</div><div class="mini-cart__item-price">';
@@ -738,6 +740,13 @@ $(() => {
       e.preventDefault();
       const $addToCartForm = $(this).closest('form');
       const $addToCartBtn = $addToCartForm.find('.add_to_cart');
+      this.recipientForm = $addToCartForm[0].querySelector('[data-recipient-form]');
+
+      $('.warning').remove();
+
+      if (this.recipientForm) {
+        this.recipientForm.classList.remove('recipient-form--has-errors');
+      }
 
       // Refresh page on quick shop add to cart if on cart page
       if ($('body').hasClass('cart')) {
@@ -801,13 +810,20 @@ $(() => {
             },
           });
         },
-        error(XMLHttpRequest) {
-          let response = eval(`(${XMLHttpRequest.responseText})`);
-          response = response.description;
+        error: XMLHttpRequest => {
+          const response = eval(`(${XMLHttpRequest.responseText})`);
+
           $('.warning').remove();
 
-          const warning = `<p class="warning animated bounceIn">${response.replace('All 1 ', 'All ')}</p>`;
-          $addToCartForm.after(warning);
+          let warning;
+
+          if (response.errors && response.errors.email) {
+            this.recipientForm.classList.add('recipient-form--has-errors');
+          } else {
+            warning = `<p class="warning animated bounceIn">${response.description.replace('All 1 ', 'All ')}</p>`;
+            $addToCartForm.after(warning);
+          }
+
           $addToCartBtn.removeAttr('disabled').removeClass('disabled');
           $addToCartBtn.find('span').text(window.PXUTheme.translation.add_to_cart).removeClass('zoomOut').addClass('zoomIn');
         },
