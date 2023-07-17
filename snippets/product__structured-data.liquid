@@ -1,0 +1,187 @@
+{% comment %}
+  Product structured data
+  https://developers.google.com/search/docs/data-types/products
+{% endcomment %}
+
+{%- assign selected_variant = product.selected_or_first_available_variant | default: product.variants.first -%}
+{%- assign product_image = selected_variant.featured_image | default: product.featured_image -%}
+
+{% comment %}
+{%- assign product_metafields = product.metafields -%}
+
+{%- assign trustedshops_api_key = "YOUR_API_KEY" -%}
+{%- assign trustedshops_api_secret = "YOUR_API_SECRET" -%}
+{%- assign product_id = product.id -%}
+
+{%- assign response = product_id | http: "https://api.trustedshops.com/rest/public/v2/shops/{{ trustedshops_id }}/reviews.json?apikey={{ trustedshops_api_key }}&tsAuthToken={{ trustedshops_api_secret }}" -%}
+{%- assign data = response | json -%}
+
+{%- assign rating_count = data.count -%}
+{%- assign rating_value = data.average_rating -%}
+
+{%- assign product_metafields.spr.review = '{ "ratingCount": "' | append: rating_count | append: '", "ratingValue": "' | append: rating_value | append: '" }' | json -%}
+{%- assign product_metafields_updated = product | metafields_write: product_metafields -%}
+
+{%- assign spr_metafields = product_metafields.spr -%}
+{%- assign spr_metafields.review = spr_metafields.review -%}
+
+{%- assign reviews = spr_metafields.review | json -%}
+{% endcomment %}
+
+
+{%- capture product_name -%}
+  {{ product.title | escape }}
+  {%- if selected_variant.title != 'Default Title' and selected_variant.option1 == 'Default Title' -%}
+  - {{ selected_variant.title }}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- assign now = 'now' | date: '%Y-%m-%d' | split: '-' -%}
+
+{% capture year_from_now %}
+  {{ now[0] | plus: 1 }}-{{ now[1] }}-{{ now[2] | at_most: 28 }}
+{% endcapture %}
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org/",
+    "@type": "Product",
+    "name": {{ product_name | strip_newlines | json }},
+    "image": {{ product_image | img_url: '1024x1024' | prepend: 'https:' | json }},
+    
+    {% if product.metafields.spr.review != blank %}
+    	"aggregateRating": {
+    	"@type": "AggregateRating",
+    	"ratingValue": "{{review.ratingValue}}",
+    	"reviewCount": "{{review.ratingCount}}",
+        "itemReviewed": {
+        "@type" : "Product",
+        "name" : {{ product_name | strip_newlines | json }}
+        }
+  		},
+    {% endif %}
+    
+    
+    {% comment %}
+    {% if product.description != blank %}
+      "description": {{ product.description | json }},
+    {% endif %}
+    {% endcomment %}
+    
+    {% if product.metafields.my_product.seodescription != blank %}
+      "description": {{ product.metafields.my_product.seodescription | json }},
+    {% endif %}
+    {% if product.metafields.my_product.brand != blank %}
+      "brand": {
+        "@type": "Brand",
+        "name": {{ product.metafields.my_product.brand | json }}
+      },
+    {% endif %}
+    {% if selected_variant.sku != blank %}
+      "sku": {{ selected_variant.sku | json }},
+    {% endif %}       
+    {% if selected_variant.barcode != blank %}
+      "gtin14": {{ selected_variant.barcode | json }},
+    {% endif %}
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": {{ cart.currency.iso_code | json }},
+      "price": {{ selected_variant.price | divided_by: 100.0 | json }},
+      "availability": "http://schema.org/{% if selected_variant.available %}InStock{% else %}OutOfStock{% endif %}",
+      "url": "{{ shop.url }}{{ selected_variant.url }}",
+      "itemCondition": "https://schema.org/NewCondition",
+      "seller": {
+        "@type": "Organization",
+        "name": {{ shop.name | json }}
+      },
+      "priceValidUntil": {{ year_from_now | json }}
+    
+    {% comment %}     
+    "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": {{ selected_variant.price | divided_by: 100.0 | json }},
+        "priceCurrency": {{ cart.currency.iso_code | json }}
+    
+    {% if selected_variant.sku contains "20g" %} 
+      
+        "@type": "UnitPriceSpecification",
+        "price": {{ selected_variant.price | divided_by: 100.0 | json }},
+        "priceCurrency": {{ cart.currency.iso_code | json }},
+        "referenceQuantity": {
+          "@type": "QuantitativeValue",
+          "value": "0.020",
+          "unitCode": "KGM"}
+    
+    {% endif %}
+    {% if selected_variant.sku contains "30g" %}
+    
+        "@type": "UnitPriceSpecification",
+        "price": {{ selected_variant.price | divided_by: 100.0 | json }},
+        "priceCurrency": {{ cart.currency.iso_code | json }},
+        "referenceQuantity": {
+          "@type": "QuantitativeValue",
+          "value": "0.030",
+          "unitCode": "KGM"}
+     
+    {% endif %}
+    {% if selected_variant.sku contains "50g" %}
+    
+        "@type": "UnitPriceSpecification",
+        "price": {{ selected_variant.price | divided_by: 100.0 | json }},
+        "priceCurrency": {{ cart.currency.iso_code | json }},
+        "referenceQuantity": {
+          "@type": "QuantitativeValue",
+          "value": "0.050",
+          "unitCode": "KGM"}
+    
+    {% endif %}
+    {% if selected_variant.sku contains "60g" %}
+    
+        "@type": "UnitPriceSpecification",
+        "price": {{ selected_variant.price | divided_by: 100.0 | json }},
+        "priceCurrency": {{ cart.currency.iso_code | json }},
+        "referenceQuantity": {
+          "@type": "QuantitativeValue",
+          "value": "0.060",
+          "unitCode": "KGM"}
+     
+    {% endif %}
+    {% if selected_variant.sku contains "100g" %}
+    
+        "@type": "UnitPriceSpecification",
+        "price": {{ selected_variant.price | divided_by: 100.0 | json }},
+        "priceCurrency": {{ cart.currency.iso_code | json }},
+        "referenceQuantity": {
+          "@type": "QuantitativeValue",
+          "value": "0.1",
+          "unitCode": "KGM"}
+    
+    {% endif %}
+    {% if selected_variant.sku contains "200g" %}
+    
+        "@type": "UnitPriceSpecification",
+        "price": {{ selected_variant.price | divided_by: 100.0 | json }},
+        "priceCurrency": {{ cart.currency.iso_code | json }},
+        "referenceQuantity": {
+          "@type": "QuantitativeValue",
+          "value": "0.2",
+          "unitCode": "KGM"}
+     
+    {% endif %}
+    {% if selected_variant.sku contains "500g" %}
+    
+        "@type": "UnitPriceSpecification",
+        "price": {{ selected_variant.price | divided_by: 100.0 | json }},
+        "priceCurrency": {{ cart.currency.iso_code | json }},
+        "referenceQuantity": {
+          "@type": "QuantitativeValue",
+          "value": "0.5",
+          "unitCode": "KGM"}
+     
+    {% endif %}
+    {% endcomment %}
+   }   
+   
+   
+  }
+</script>

@@ -1,0 +1,10 @@
+<script>
+  window.OCUApi = window.OCUApi || {};
+  OCUApi.customLineItemAttributes = '[data-cart-form="mini-cart"] [data-cart-item] .line-item';
+  OCUApi.callbackBeforeRedirect = (global) => {
+    const isCart = '{{ template.name }}' === 'cart';
+    if (global.isProductAction || isCart) return Promise.resolve({});
+    global.context.helpers.preventFallbackRedirect();
+    global.target.click();
+  };
+</script>
